@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cuenta regresiva – Congreso "El mutualismo hacia el 2030"</title>
+<style>
+  /* ===== COLORES (ajustados a las tarjetas amarillas del panel) ===== */
+  :root {
+    --fondo-tarjeta: #ffd54f;
+    --color-numero: #222222;
+    --color-etiqueta: #7a5c00;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: transparent; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    font-family: Roboto, "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  }
+
+  .contador {
+    width: 100%;
+    height: 100vh;
+    max-height: 160px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(4px, 2vw, 12px);
+  }
+
+  .caja {
+    min-width: 0;
+    background: var(--fondo-tarjeta);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .numero {
+    font-size: min(46vh, 13vw, 72px);
+    font-weight: 500;
+    line-height: 1;
+    color: var(--color-numero);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .etiqueta {
+    margin-top: .3em;
+    font-size: min(15vh, 3.2vw, 14px);
+    letter-spacing: .08em;
+    white-space: nowrap;
+    text-transform: uppercase;
+    color: var(--color-etiqueta);
+  }
+
+  /* Mensaje que reemplaza al contador cuando llega la hora */
+  .fin {
+    display: none;
+    grid-column: 1 / -1;
+    font-size: min(34vh, 6.5vw, 40px);
+    font-weight: 700;
+    text-align: center;
+    color: var(--color-numero);
+  }
+  .contador.terminado .caja { display: none; }
+  .contador.terminado .fin { display: flex; }
+</style>
+</head>
+<body>
+
+<div class="contador" id="contador" role="timer" aria-label="Cuenta regresiva para el congreso">
+  <div class="caja"><div class="numero" id="d">--</div><div class="etiqueta" id="ld">Días</div></div>
+  <div class="caja"><div class="numero" id="h">--</div><div class="etiqueta" id="lh">Horas</div></div>
+  <div class="caja"><div class="numero" id="m">--</div><div class="etiqueta" id="lm">Minutos</div></div>
+  <div class="caja"><div class="numero" id="s">--</div><div class="etiqueta" id="ls">Segundos</div></div>
+  <div class="caja fin">¡EL CONGRESO COMENZÓ!</div>
+</div>
+
+<script>
+  // ===== CONFIGURACIÓN =====
+  // Fecha y hora de inicio con la hora de Argentina (UTC-3). Es lo único que hay que cambiar.
+  var OBJETIVO = new Date("2026-10-22T14:30:00-03:00").getTime();
+
+  var $ = function (id) { return document.getElementById(id); };
+  var cont = $("contador");
+
+  function dos(n) { return (n < 10 ? "0" : "") + n; }
+  function plural(n, uno, varios) { return n === 1 ? uno : varios; }
+
+  function pintar() {
+    var restante = OBJETIVO - Date.now();
+    if (restante <= 0) {
+      cont.classList.add("terminado");
+      return false;
+    }
+    var t = Math.ceil(restante / 1000);          // segundos que faltan
+    var d = Math.floor(t / 86400);
+    var h = Math.floor((t % 86400) / 3600);
+    var m = Math.floor((t % 3600) / 60);
+    var s = t % 60;
+
+    $("d").textContent = dos(d);  $("ld").textContent = plural(d, "Día", "Días");
+    $("h").textContent = dos(h);  $("lh").textContent = plural(h, "Hora", "Horas");
+    $("m").textContent = dos(m);  $("lm").textContent = plural(m, "Minuto", "Minutos");
+    $("s").textContent = dos(s);  $("ls").textContent = plural(s, "Segundo", "Segundos");
+    return true;
+  }
+
+  // Se actualiza justo después de cada cambio de segundo; si la pestaña estuvo en segundo plano, se corrige al volver.
+  function ciclo() {
+    if (pintar()) setTimeout(ciclo, 1000 - (Date.now() % 1000) + 10);
+  }
+  document.addEventListener("visibilitychange", pintar);
+  ciclo();
+</script>
+</body>
+</html>
